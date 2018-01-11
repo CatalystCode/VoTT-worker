@@ -5,6 +5,7 @@ import time
 
 from azure.storage.queue.queueservice import QueueService
 from azure.servicebus import ServiceBusService
+from tempfile import TemporaryDirectory
 
 class Task:
     '''
@@ -79,15 +80,20 @@ class ServiceBusTaskSource(TaskSource):
     Azure Service Bus implementation of TaskSource.
     '''
     def __init__(self):
-        self.serviceBus = ServiceBusService(service_bus_namespace,
+        self.service_bus = ServiceBusService(service_bus_namespace,
                                 shared_access_key_name=os.environ.get('AZURE_SERVICE_BUS_ACCESS_KEY_NAME'),
                                 shared_access_key_value=os.environ.get('AZURE_SERVICE_BUS_ACCESS_KEY_VALUE'))
+        self.queue_name = os.environ.get('AZURE_SERVICE_BUS_QUEUE_NAME', 'training')
     @classmethod
     def service_bus_namespace(self):
         return os.environ.get('AZURE_SERVICE_BUS_NAMESPACE')
     @classmethod
     def is_supported(self):
         return self.service_bus_namespace()
+    def receive(self):
+        message = self.service_bus.receive_queue_message(self.queue_name)
+        # TODO: Convert the message to a Task
+        return None
 
 if __name__ == '__main__':
     if not (ServiceBusTaskSource.is_supported() or StorageQueueTaskSource.is_supported()):
@@ -103,8 +109,8 @@ if __name__ == '__main__':
             time.sleep(10)
             continue
         for task in tasks:
-            # TODO: Create sandbox temp space for task processing.
             # TODO: Download/initialize configured plugin.
             # TODO: Run training task.
-            source.commit(task)
-            
+            with TemporaryDirectory() as sandbox:
+                print("Processing using sandbox: %s" % sandbox)
+                source.commit(task)
