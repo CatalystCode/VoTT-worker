@@ -5,25 +5,25 @@ import time
 
 from azure.storage.queue.queueservice import QueueService
 from azure.servicebus import ServiceBusService
+from azure.servicebus.models import Message
 from tempfile import TemporaryDirectory
 
 class Task:
     '''
     Represents a queued training task.
     '''
-    def __init__(self, id, pop_receipt, annotations_url, output_model_url, output_status_url):
-        self.id = id
-        self.pop_receipt = pop_receipt
+    def __init__(self, annotations_url, output_model_url, output_status_url, user_info):
         self.annotations_url = annotations_url
         self.output_model_url = output_model_url
         self.output_status_url = output_status_url
+        self.user_info = user_info
     def __str__(self):
         return str({id:self.id, pop_recepit:self.pop_receipt})
 
 class TaskSource:
     '''
-    Abstract class to allow switching between Storage Queues or Service Bus
-    (or something else).
+    Abstract class to allow switching between Azure Storage Queues or Azure
+    Service Bus (or something else).
     '''
     @classmethod
     def is_supported(self):
@@ -31,7 +31,7 @@ class TaskSource:
     def receive(self):
         '''
         To be implemented by subclasses as a way to provide task(s) from either
-        Storage Queues or Service Bus.
+        Azure Storage Queues or Azure Service Bus.
         '''
         raise Exception("Unimplemented")
     def commit(self, task):
@@ -70,10 +70,10 @@ class StorageQueueTaskSource(TaskSource):
 
     def receive(self):
         messages = self.queue.get_messages(self.queue_name, self.queue_message_count)
-        return [Task(message.id, message.pop_receipt, annotations_url='http://azure.com', output_model_url='http://azure.com', output_status_url='http://azure.com') for message in messages]
+        return [Task(annotations_url='http://azure.com', output_model_url='http://azure.com', output_status_url='http://azure.com', user_info=message) for message in messages]
 
     def commit(self, task):
-        self.queue.delete_message(self.queue_name, task.id, task.pop_receipt)
+        self.queue.delete_message(self.queue_name, task.user_info.id, task.user_info.pop_receipt)
 
 class ServiceBusTaskSource(TaskSource):
     '''
@@ -92,7 +92,8 @@ class ServiceBusTaskSource(TaskSource):
         return self.service_bus_namespace()
     def receive(self):
         message = self.service_bus.receive_queue_message(self.queue_name)
-        # TODO: Convert the message to a Task
+        if message:
+            return Task(annotations_url='http://azure.com', output_model_url='http://azure.com', output_status_url='http://azure.com', user_info=message)
         return None
 
 if __name__ == '__main__':
@@ -111,6 +112,7 @@ if __name__ == '__main__':
         for task in tasks:
             # TODO: Download/initialize configured plugin.
             # TODO: Run training task.
+            # TODO: Ensure that the TaskSource keeps the task alive while the training runs.
             with TemporaryDirectory() as sandbox:
                 print("Processing using sandbox: %s" % sandbox)
                 source.commit(task)
