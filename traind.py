@@ -35,7 +35,7 @@ class Task:
         self.complete = False
     def __str__(self):
         return str( { 'source':self.source, 'content':self.content } )
-    def train(self):
+    def train(self, sandbox):
         # TODO: Download/initialize configured plugin.
         # TODO: Run training task.
         if plugin_url:
@@ -44,6 +44,7 @@ class Task:
         else:
             print("Using plugin %s..." % plugin_name)
         print("Processing %s" % self.content)
+        #TODO: Change the plugin's current working directory to match the sandbox.
         path_to_plugin = os.path.join('plugins', plugin_name, 'plugin.py')
         plugin_process = subprocess.Popen([
             'python3',
@@ -60,7 +61,7 @@ class Task:
         self.source.commit(self)
         self.complete = True
     def queue_keep_alive(self):
-        threading.Timer(keep_alive_interval_in_seconds, keep_alive, self)
+        threading.Timer(keep_alive_interval_in_seconds, keep_alive, self).start()
     def keep_alive(self):
         print("Hello from keep_alive().")
         # TODO: Call keep_alive
@@ -161,9 +162,8 @@ if __name__ == '__main__':
         for task in tasks:
             with TemporaryDirectory() as sandbox:
                 print("Processing using sandbox: %s" % sandbox)
-                # TODO: Ensure that the TaskSource keeps the task alive while the training runs.
-                # task.queue_keep_alive()
-                exit_code = task.train()
+                task.queue_keep_alive()
+                exit_code = task.train(sandbox)
                 if exit_code:
                     print("Non-zero exit code from training, so not comitting task.")
                 else:
