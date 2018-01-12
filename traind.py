@@ -128,7 +128,7 @@ class ServiceBusTaskSource(TaskSource):
     Azure Service Bus implementation of TaskSource.
     '''
     def __init__(self):
-        self.service_bus = ServiceBusService(service_bus_namespace,
+        self.service_bus = ServiceBusService(ServiceBusTaskSource.service_bus_namespace(),
                                 shared_access_key_name=os.environ.get('AZURE_SERVICE_BUS_ACCESS_KEY_NAME'),
                                 shared_access_key_value=os.environ.get('AZURE_SERVICE_BUS_ACCESS_KEY_VALUE'))
         self.queue_name = os.environ.get('AZURE_SERVICE_BUS_QUEUE_NAME', 'training')
@@ -141,7 +141,7 @@ class ServiceBusTaskSource(TaskSource):
     def receive(self):
         message = self.service_bus.receive_queue_message(self.queue_name)
         if message:
-            return Task(source=self, annotations_url='http://azure.com', output_model_url='http://azure.com', output_status_url='http://azure.com', user_info=message)
+            return Task(source=self, content=None, user_info=message)
         return None
     def commit(self, task):
         task.user_info.delete()
