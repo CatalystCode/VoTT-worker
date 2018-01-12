@@ -4,10 +4,15 @@ import os
 import time
 import threading
 
+from dotenv import load_dotenv
 from azure.storage.queue.queueservice import QueueService
 from azure.servicebus import ServiceBusService
 from azure.servicebus.models import Message
 from tempfile import TemporaryDirectory
+
+dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
+if os.path.isfile(dotenv_path):
+    load_dotenv(dotenv_path)
 
 keep_alive_interval_in_seconds = int(os.environ.get('VOTT_KEEP_ALIVE_IN_SECONDS', '1'))
 receive_sleep_in_seconds = int(os.environ.get('VOTT_RECEIVE_SLEEP_IN_SECONDS', '30'))
