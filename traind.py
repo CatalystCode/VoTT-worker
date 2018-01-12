@@ -2,6 +2,7 @@
 
 import os
 import time
+import threading
 
 from azure.storage.queue.queueservice import QueueService
 from azure.servicebus import ServiceBusService
@@ -12,14 +13,25 @@ class Task:
     '''
     Represents a queued training task.
     '''
-    def __init__(self, annotations_url, output_model_url, output_status_url, user_info):
+    def __init__(self, source, annotations_url, output_model_url, output_status_url, user_info):
+        self.source = source
         self.annotations_url = annotations_url
         self.output_model_url = output_model_url
         self.output_status_url = output_status_url
         self.user_info = user_info
+        self.complete = False
     def __str__(self):
-        return str({id:self.id, pop_recepit:self.pop_receipt})
-
+        return str( { source:self.source, user_info:self.user_info } )
+    def commit(self):
+        self.source.commit(self)
+        self.complete = True
+    def queue_keep_alive(self):
+        threading.Timer(10.0, self.keep_alive)
+    def keep_alive(self):
+        # TODO: Call keep_alive
+        if self.complete:
+            return
+        self.queue_keep_alive()
 class TaskSource:
     '''
     Abstract class to allow switching between Azure Storage Queues or Azure
@@ -70,7 +82,7 @@ class StorageQueueTaskSource(TaskSource):
 
     def receive(self):
         messages = self.queue.get_messages(self.queue_name, self.queue_message_count)
-        return [Task(annotations_url='http://azure.com', output_model_url='http://azure.com', output_status_url='http://azure.com', user_info=message) for message in messages]
+        return [Task(source=self, annotations_url='http://azure.com', output_model_url='http://azure.com', output_status_url='http://azure.com', user_info=message) for message in messages]
 
     def commit(self, task):
         self.queue.delete_message(self.queue_name, task.user_info.id, task.user_info.pop_receipt)
@@ -93,8 +105,10 @@ class ServiceBusTaskSource(TaskSource):
     def receive(self):
         message = self.service_bus.receive_queue_message(self.queue_name)
         if message:
-            return Task(annotations_url='http://azure.com', output_model_url='http://azure.com', output_status_url='http://azure.com', user_info=message)
+            return Task(source=self, annotations_url='http://azure.com', output_model_url='http://azure.com', output_status_url='http://azure.com', user_info=message)
         return None
+    def commit(self, task):
+        task.user_info.delete()
 
 if __name__ == '__main__':
     if not (ServiceBusTaskSource.is_supported() or StorageQueueTaskSource.is_supported()):
@@ -112,7 +126,8 @@ if __name__ == '__main__':
         for task in tasks:
             # TODO: Download/initialize configured plugin.
             # TODO: Run training task.
-            # TODO: Ensure that the TaskSource keeps the task alive while the training runs.
             with TemporaryDirectory() as sandbox:
                 print("Processing using sandbox: %s" % sandbox)
-                source.commit(task)
+                # TODO: Ensure that the TaskSource keeps the task alive while the training runs.
+                task.queue_keep_alive()
+                task.commit()
