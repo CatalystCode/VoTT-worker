@@ -9,6 +9,14 @@ from azure.servicebus import ServiceBusService
 from azure.servicebus.models import Message
 from tempfile import TemporaryDirectory
 
+keep_alive_interval_in_seconds = int(os.environ.get('VOTT_KEEP_ALIVE_IN_SECONDS', '1'))
+receive_sleep_in_seconds = int(os.environ.get('VOTT_RECEIVE_SLEEP_IN_SECONDS', '30'))
+plugin_name = os.environ.get('VOTT_KEEP_PLUGIN_NAME', 'hello-world')
+plugin_url = os.environ.get('VOTT_KEEP_PLUGIN_URL', None)
+
+def keep_alive(object):
+    object.keep_alive()
+
 class Task:
     '''
     Represents a queued training task.
@@ -22,12 +30,24 @@ class Task:
         self.complete = False
     def __str__(self):
         return str( { source:self.source, user_info:self.user_info } )
+    def train(self):
+        # TODO: Download/initialize configured plugin.
+        # TODO: Run training task.
+        print("Hello from train().")
+        if plugin_url:
+            # TODO: Download/update plugin
+            print("Updating plugin %s from %s ..." % plugin_name, plugin_url)
+        else:
+            print("Using plugin %s..." % plugin_name)
+        time.sleep(30)
+        print("Completed simulated training.")
     def commit(self):
         self.source.commit(self)
         self.complete = True
     def queue_keep_alive(self):
-        threading.Timer(10.0, self.keep_alive)
+        threading.Timer(keep_alive_interval_in_seconds, keep_alive, self)
     def keep_alive(self):
+        print("Hello from keep_alive().")
         # TODO: Call keep_alive
         if self.complete:
             return
@@ -65,9 +85,6 @@ class StorageQueueTaskSource(TaskSource):
         self.queue_name = os.environ.get('AZURE_STORAGE_QUEUE_NAME', 'training')
         self.queue_message_count = int(os.environ.get('AZURE_STORAGE_QUEUE_MESSAGE_COUNT', '1'))
     
-    def __str__(self):
-        return "Storage Queue (%s)" % self.storage_account_name()
-    
     @classmethod
     def storage_account_name(self):
         return os.environ.get('AZURE_STORAGE_ACCOUNT_NAME')
@@ -76,6 +93,9 @@ class StorageQueueTaskSource(TaskSource):
     def storage_key(self):
         return os.environ.get('AZURE_STORAGE_KEY')
 
+    def __str__(self):
+        return "Storage Queue (%s)" % self.storage_account_name()
+    
     @classmethod
     def is_supported(self):
         return self.storage_account_name() and self.storage_key()
@@ -116,18 +136,17 @@ if __name__ == '__main__':
         exit(10)
     print("Accessing task queue...")
     source = ServiceBusTaskSource() if ServiceBusTaskSource.is_supported() else StorageQueueTaskSource()
+    print("Fetching tasks from %s..." % source)
     while True:
-        print("Fetching tasks from %s..." % source)
         tasks = source.receive()
         if not tasks:
             print("No new tasks, sleeping.")
-            time.sleep(10)
+            time.sleep(receive_sleep_in_seconds)
             continue
         for task in tasks:
-            # TODO: Download/initialize configured plugin.
-            # TODO: Run training task.
             with TemporaryDirectory() as sandbox:
                 print("Processing using sandbox: %s" % sandbox)
                 # TODO: Ensure that the TaskSource keeps the task alive while the training runs.
-                task.queue_keep_alive()
+                # task.queue_keep_alive()
+                task.train()
                 task.commit()
