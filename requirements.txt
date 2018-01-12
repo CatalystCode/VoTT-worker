@@ -1,0 +1,4 @@
+python-dotenv
+azure-storage
+azure-servicebus
+

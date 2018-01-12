@@ -2,13 +2,13 @@
 VoTT-train plugins are simple command line tools that should respond to the following command line arguments:
 
 ```
-myplugin/plugin.py --input-annotations=https://somehost/path/to/annotations.csv \
-                   --output-model=https://somehost/path/to/container_or_bucket \
-                   --output-status=https://somehost/path/to/status_endpoint
+myplugin/plugin.py --annotations=https://somehost/path/to/annotations.csv \
+                   --model=https://somehost/path/to/container_or_bucket \
+                   --status=https://somehost/path/to/status_endpoint
 ```
 
-# input-annotations
-The `input-annotations` argument will point to a csv file that follows the following pattern:
+# annotations
+The `annotations` argument will point to a csv file that follows the following pattern:
 
 ```
 https://somehost/path/to/file01.jpg,x,y,width,height,class01
@@ -17,11 +17,11 @@ https://somehost/path/to/file02.jpg,x,y,width,height,class01
 https://somehost/path/to/file03.jpg,x,y,width,height,class02
 ```
 
-# output-model
-The `output-model` argument will reference an Azure Blob Container or AWS S3 bucket where the output of the plugin is to be uploaded. This may include *.h5 or *.model files as well as any other files that are needed during prediction.
+# model
+The `model` argument will reference an Azure Blob Container or AWS S3 bucket where the output of the plugin is to be uploaded. This may include *.h5 or *.model files as well as any other files that are needed during prediction.
 
-# output-status
-The `output-status` argument will reference a callback URL that takes the following POST JSON (application/json) payload:
+# status
+The `status` argument will reference a callback URL that takes the following POST JSON (application/json) payload:
 
 ```
 {

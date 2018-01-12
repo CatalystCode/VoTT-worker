@@ -3,6 +3,8 @@
 import os
 import time
 import threading
+import json
+import subprocess
 
 from dotenv import load_dotenv
 from azure.storage.queue.queueservice import QueueService
@@ -26,25 +28,35 @@ class Task:
     '''
     Represents a queued training task.
     '''
-    def __init__(self, source, annotations_url, output_model_url, output_status_url, user_info):
+    def __init__(self, source, content, user_info):
         self.source = source
-        self.annotations_url = annotations_url
-        self.output_model_url = output_model_url
-        self.output_status_url = output_status_url
+        self.content = content
         self.user_info = user_info
         self.complete = False
     def __str__(self):
-        return str( { source:self.source, user_info:self.user_info } )
+        return str( { 'source':self.source, 'content':self.content } )
     def train(self):
         # TODO: Download/initialize configured plugin.
         # TODO: Run training task.
         print("Hello from train().")
         if plugin_url:
-            # TODO: Download/update plugin
+            # TODO: Download/update plugin (git clone or git update)
             print("Updating plugin %s from %s ..." % plugin_name, plugin_url)
         else:
             print("Using plugin %s..." % plugin_name)
-        time.sleep(30)
+        print("Processing %s" % self.content)
+        path_to_plugin = os.path.join('plugins', plugin_name, 'plugin.py')
+        plugin_process = subprocess.Popen([
+            'python3',
+            path_to_plugin,
+            '--annotations',
+            self.content['annotations'],
+            '--model',
+            self.content['model'],
+            '--status',
+            self.content['status']
+        ])
+        plugin_process.wait()
         print("Completed simulated training.")
     def commit(self):
         self.source.commit(self)
@@ -107,7 +119,7 @@ class StorageQueueTaskSource(TaskSource):
 
     def receive(self):
         messages = self.queue.get_messages(self.queue_name, self.queue_message_count)
-        return [Task(source=self, annotations_url='http://azure.com', output_model_url='http://azure.com', output_status_url='http://azure.com', user_info=message) for message in messages]
+        return [Task(source=self, content=json.loads(message.content), user_info=message) for message in messages]
 
     def commit(self, task):
         self.queue.delete_message(self.queue_name, task.user_info.id, task.user_info.pop_receipt)
