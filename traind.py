@@ -38,7 +38,6 @@ class Task:
     def train(self):
         # TODO: Download/initialize configured plugin.
         # TODO: Run training task.
-        print("Hello from train().")
         if plugin_url:
             # TODO: Download/update plugin (git clone or git update)
             print("Updating plugin %s from %s ..." % plugin_name, plugin_url)
@@ -56,8 +55,7 @@ class Task:
             '--status',
             self.content['status']
         ])
-        plugin_process.wait()
-        print("Completed simulated training.")
+        return plugin_process.wait()
     def commit(self):
         self.source.commit(self)
         self.complete = True
@@ -165,5 +163,9 @@ if __name__ == '__main__':
                 print("Processing using sandbox: %s" % sandbox)
                 # TODO: Ensure that the TaskSource keeps the task alive while the training runs.
                 # task.queue_keep_alive()
-                task.train()
-                task.commit()
+                exit_code = task.train()
+                if exit_code:
+                    print("Non-zero exit code from training, so not comitting task.")
+                else:
+                    print("Committing task %s" % task)
+                    task.commit()
