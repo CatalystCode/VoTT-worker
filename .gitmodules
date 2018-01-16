@@ -1,0 +1,3 @@
+[submodule "plugins/retinanet/keras-retinanet"]
+	path = plugins/retinanet/keras-retinanet
+	url = https://github.com/jcjimenez/keras-retinanet.git
