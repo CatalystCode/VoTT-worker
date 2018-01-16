@@ -21,7 +21,7 @@ https://somehost/path/to/file03.jpg,x,y,width,height,class02
 The `model` argument will reference an Azure Blob Container or AWS S3 bucket where the output of the plugin is to be uploaded. This may include *.h5 or *.model files as well as any other files that are needed during prediction.
 
 # status
-The `status` argument will reference a callback URL that takes the following POST JSON (application/json) payload:
+The `status` argument will reference a callback URL that can be implemented by the plugin, but a suggested implementation would send the following POST JSON (application/json) payload:
 
 ```
 {

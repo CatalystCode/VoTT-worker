@@ -11,6 +11,7 @@ from azure.storage.queue.queueservice import QueueService
 from azure.servicebus import ServiceBusService
 from azure.servicebus.models import Message
 from tempfile import TemporaryDirectory
+from azure.common import AzureMissingResourceHttpError
 
 dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
 if os.path.isfile(dotenv_path):
@@ -20,9 +21,6 @@ keep_alive_interval_in_seconds = int(os.environ.get('VOTT_KEEP_ALIVE_IN_SECONDS'
 receive_sleep_in_seconds = int(os.environ.get('VOTT_RECEIVE_SLEEP_IN_SECONDS', '30'))
 plugin_name = os.environ.get('VOTT_KEEP_PLUGIN_NAME', 'hello-world')
 plugin_url = os.environ.get('VOTT_KEEP_PLUGIN_URL', None)
-
-def keep_alive(object):
-    object.keep_alive()
 
 class Task:
     '''
@@ -61,12 +59,11 @@ class Task:
         self.source.commit(self)
         self.complete = True
     def queue_keep_alive(self):
-        threading.Timer(keep_alive_interval_in_seconds, keep_alive, self).start()
+        threading.Timer(keep_alive_interval_in_seconds, lambda:self.keep_alive()).start()
     def keep_alive(self):
-        print("Hello from keep_alive().")
-        # TODO: Call keep_alive
         if self.complete:
             return
+        self.source.keep_alive(self)
         self.queue_keep_alive()
 class TaskSource:
     '''
@@ -86,6 +83,12 @@ class TaskSource:
         '''
         To be implemented by subclasses as a way to mark a given task as
         complete or deleted.
+        '''
+        raise Exception("Unimplemented")
+    def keep_alive(self, task):
+        '''
+        To be implemented by subclasses as a way to tell the queueing system
+        that the given task is still being worked on.
         '''
         raise Exception("Unimplemented")
 
@@ -120,6 +123,13 @@ class StorageQueueTaskSource(TaskSource):
         messages = self.queue.get_messages(self.queue_name, self.queue_message_count)
         return [Task(source=self, content=json.loads(message.content), user_info=message) for message in messages]
 
+    def keep_alive(self, task):
+        try:
+            result = self.queue.update_message(self.queue_name, task.user_info.id, task.user_info.pop_receipt, keep_alive_interval_in_seconds)
+            task.user_info.pop_receipt = result.pop_receipt
+        except AzureMissingResourceHttpError:
+            print("Message %s already deleted." % task.user_info.id)
+    
     def commit(self, task):
         self.queue.delete_message(self.queue_name, task.user_info.id, task.user_info.pop_receipt)
 
