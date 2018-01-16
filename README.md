@@ -37,9 +37,9 @@ The `traind.py` daemon expects to see JSON messages like the following:
 
 ```
 {
-  annotations:"https://somehost/path/to/annotations.csv",
-  model:"https://somehost/path/to/container_or_bucket",
-  status:"https://somehost/path/to/status/callback"
+  "annotations":"https://somehost/path/to/annotations.csv",
+  "model":"https://somehost/path/to/container_or_bucket",
+  "status":"https://somehost/path/to/status/callback"
 }
 ```
 

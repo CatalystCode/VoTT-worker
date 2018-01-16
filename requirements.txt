@@ -3,4 +3,4 @@ azure-storage
 azure-servicebus
 keras
 opencv-python
-
+pandas
