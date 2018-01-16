@@ -1,6 +1,6 @@
-import threading
-import sys
 import argparse
+import sys
+import time
 
 def parse_args(args):
     parser = argparse.ArgumentParser(description='Hello World VoTT-train plugin.')
@@ -17,15 +17,5 @@ print("  annotations: %s" % args.annotations)
 print("  model: %s" % args.model)
 print("  status: %s" % args.status)
 
-hello_count = 0
-def hello():
-    global hello_count
-    print("  hello, world (%s)" % hello_count)
-    hello_count+=1
-    if hello_count < 10:
-        queue_hello()
-def queue_hello():
-    threading.Timer(1.0, hello).start()
-
-hello()
-exit(0)
+time.sleep(30)
+sys.exit(0)

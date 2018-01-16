@@ -32,7 +32,7 @@ class Task:
         self.user_info = user_info
         self.complete = False
     def __str__(self):
-        return str( { 'source':self.source, 'content':self.content } )
+        return str(self.content)
     def train(self, sandbox):
         # TODO: Download/initialize configured plugin.
         # TODO: Run training task.
@@ -124,11 +124,8 @@ class StorageQueueTaskSource(TaskSource):
         return [Task(source=self, content=json.loads(message.content), user_info=message) for message in messages]
 
     def keep_alive(self, task):
-        try:
-            result = self.queue.update_message(self.queue_name, task.user_info.id, task.user_info.pop_receipt, keep_alive_interval_in_seconds)
-            task.user_info.pop_receipt = result.pop_receipt
-        except AzureMissingResourceHttpError:
-            print("Message %s already deleted." % task.user_info.id)
+        result = self.queue.update_message(self.queue_name, task.user_info.id, task.user_info.pop_receipt, keep_alive_interval_in_seconds)
+        task.user_info.pop_receipt = result.pop_receipt
     
     def commit(self, task):
         self.queue.delete_message(self.queue_name, task.user_info.id, task.user_info.pop_receipt)
@@ -172,7 +169,7 @@ if __name__ == '__main__':
         for task in tasks:
             with TemporaryDirectory() as sandbox:
                 print("Processing using sandbox: %s" % sandbox)
-                task.queue_keep_alive()
+                task.keep_alive()
                 exit_code = task.train(sandbox)
                 if exit_code:
                     print("Non-zero exit code from training, so not comitting task.")
