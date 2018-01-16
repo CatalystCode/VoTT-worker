@@ -1,0 +1,9 @@
+version: '2'
+services:
+  daemon:
+    build:
+      context: ./
+    volumes:
+      - ./:/traind
+    working_dir: /traind
+    command: python3 traind.py
