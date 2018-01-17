@@ -1,8 +1,9 @@
-version: '2'
+version: '3'
 services:
   daemon:
     build:
       context: ./
+      dockerfile: Dockerfile-cpu
     volumes:
       - ./:/traind
     working_dir: /traind

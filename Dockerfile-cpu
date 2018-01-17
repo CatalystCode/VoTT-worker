@@ -1,4 +1,4 @@
-FROM tensorflow/tensorflow:1.4.1-gpu-py3
+FROM tensorflow/tensorflow:1.4.1-devel-py3
 LABEL maintainer="jc.jimenez@microsoft.com"
 USER root
 
@@ -10,5 +10,3 @@ RUN apt-get install -y --fix-missing \
     vim
 
 RUN pip3 install 'keras>=2.1.3' opencv-python azure-storage azure-servicebus python-dotenv pandas
-
-

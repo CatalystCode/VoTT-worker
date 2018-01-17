@@ -29,8 +29,16 @@ AZURE_SERVICE_BUS_ACCESS_KEY_VALUE=someaccesskeyvalue
 # Running
 Starting the training daemon should be as simple as:
 
+## For CPU-only =(
+
 ```
-nvidia-docker build .
+docker-compose up
+```
+
+## For GPU
+
+```
+docker build -f Dockerfile-gpu .
 ```
 
 and
