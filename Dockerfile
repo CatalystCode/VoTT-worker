@@ -9,6 +9,6 @@ RUN apt-get install -y --fix-missing \
     libopencv-dev python-opencv \
     vim
 
-RUN pip3 install keras opencv-python azure-storage azure-servicebus python-dotenv pandas
+RUN pip3 install 'keras>=2.1.3' opencv-python azure-storage azure-servicebus python-dotenv pandas
 
 
