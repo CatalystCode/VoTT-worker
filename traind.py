@@ -19,8 +19,8 @@ if os.path.isfile(dotenv_path):
 
 keep_alive_interval_in_seconds = int(os.environ.get('VOTT_KEEP_ALIVE_IN_SECONDS', '1'))
 receive_sleep_in_seconds = int(os.environ.get('VOTT_RECEIVE_SLEEP_IN_SECONDS', '30'))
-plugin_name = os.environ.get('VOTT_KEEP_PLUGIN_NAME', 'hello-world')
-plugin_url = os.environ.get('VOTT_KEEP_PLUGIN_URL', None)
+default_plugin_name = os.environ.get('VOTT_KEEP_PLUGIN_NAME', 'hello-world')
+default_plugin_url = os.environ.get('VOTT_KEEP_PLUGIN_URL', None)
 
 class Task:
     '''
@@ -36,6 +36,8 @@ class Task:
     def train(self, sandbox):
         # TODO: Download/initialize configured plugin.
         # TODO: Run training task.
+        plugin_name = self.content['plugin_name'] if 'plugin_name' in self.content else default_plugin_name
+        plugin_url = self.content['plugin_url'] if 'plugin_url' in self.content else default_plugin_url
         if plugin_url:
             # TODO: Download/update plugin (git clone or git update)
             print("Updating plugin %s from %s ..." % plugin_name, plugin_url)
@@ -43,17 +45,15 @@ class Task:
             print("Using plugin %s..." % plugin_name)
         print("Processing %s" % self.content)
         #TODO: Change the plugin's current working directory to match the sandbox.
-        path_to_plugin = os.path.join('plugins', plugin_name, 'plugin.py')
-        plugin_process = subprocess.Popen([
+        path_to_plugin = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'plugins', plugin_name, 'plugin.py')
+        plugin_argv = [
             'python3',
-            path_to_plugin,
-            '--annotations',
-            self.content['annotations'],
-            '--model',
-            self.content['model'],
-            '--status',
-            self.content['status']
-        ])
+            path_to_plugin
+        ]
+        for key, value in self.content.items():
+            plugin_argv.append("--%s" % key)
+            plugin_argv.append(value)
+        plugin_process = subprocess.Popen(plugin_argv, cwd=sandbox)
         return plugin_process.wait()
     def commit(self):
         self.source.commit(self)

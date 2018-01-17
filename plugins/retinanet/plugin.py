@@ -18,7 +18,8 @@ def parse_args(args):
     parser.add_argument('--status', help='URL to training status callback.', default=None, type=str)
     parser.add_argument('--epochs', help='Number of epochs to train for.', default=1, type=int)
     parser.add_argument('--steps', help='Number of steps within each epoch.', default=10, type=int)
-    return parser.parse_args(args)
+    (known,unknown) = parser.parse_known_args(args)
+    return known
 
 args = parse_args(sys.argv[1:])
 
@@ -30,7 +31,7 @@ def transform_url(url):
     path = os.path.join('files', os.path.basename(url))
     if os.path.isfile(path):
         return path
-    print("Dowloading to %s: %s" % (path, url))
+    print("Dowloading %s from %s" % (path, url))
     urllib.request.urlretrieve(url, filename=path)
     return path
 
@@ -106,9 +107,10 @@ class TrainStdoutReader(threading.Thread):
                 print("")
                 # TODO: Post status
 
+train_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'keras-retinanet/keras_retinanet/bin/train.py')
 train_process = subprocess.Popen([
     'python3',
-    'keras-retinanet/keras_retinanet/bin/train.py',
+    train_path,
     '--epochs',
     str(args.epochs),
     '--steps',
