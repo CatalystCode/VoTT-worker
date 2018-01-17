@@ -1,16 +1,15 @@
 import argparse
-import sys
-import time
-import pandas
-import os
-import urllib
-import urllib3
-import subprocess
-import tarfile
-import requests
-import threading
-import re
 import glob
+import os
+import pandas
+import re
+import requests
+import subprocess
+import sys
+import tarfile
+import threading
+import time
+import urllib
 
 def parse_args(args):
     parser = argparse.ArgumentParser(description='RetinaNet VoTT-train plugin.')
@@ -147,8 +146,9 @@ if args.model:
     print("Uploading %s to %s ..." % (model_tgz, model_url))
     curl_exit_code = subprocess.Popen(['curl', '-X', 'PUT', '-T', model_tgz, model_url]).wait()
     if curl_exit_code:
-        print("Unable to upload with curl - got exit code %d" % curl_exit_code)
+        print("\nUnable to upload with curl - got exit code %d" % curl_exit_code)
         sys.exit(curl_exit_code)
-    print("Uploaded %s to %s successfully." % (model_tgz, args.model))
+    else:
+        print("\nUploaded %s to %s successfully." % (model_tgz, args.model))
 
 sys.exit(0)
