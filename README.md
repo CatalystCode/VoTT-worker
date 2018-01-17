@@ -89,7 +89,7 @@ The `status` property is meant to be a reference to an https endpoint that can r
 }
 ```
 
-# Manual testing queueing
+# Manual queueing for testing
 
 If you need to test the response to incoming queue messages, you may create messages manually from the Azure dashboard like so:
 
