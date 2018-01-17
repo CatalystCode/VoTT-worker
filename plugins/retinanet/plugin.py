@@ -77,6 +77,8 @@ class TrainStdoutReader(threading.Thread):
         self.train_status = train_status
     def run(self):
         for linebytes in iter(self.fd.readline, ''):
+            if not self.train_status:
+                break
             line = linebytes.decode('utf-8')
             epoch_search = re.search('Epoch (\d+)[/](\d+)', line, re.IGNORECASE)
             if epoch_search:
@@ -108,9 +110,9 @@ train_process = subprocess.Popen([
     'python3',
     'keras-retinanet/keras_retinanet/bin/train.py',
     '--epochs',
-    '10',
+    str(args.epochs),
     '--steps',
-    '100',
+    str(args.steps),
     'csv',
     'annotations.csv',
     'classes.csv'
@@ -119,6 +121,7 @@ train_status = TrainStatus()
 stdout_reader = TrainStdoutReader(train_process.stdout, train_status)
 stdout_reader.start()
 train_exit_code = train_process.wait()
+stdout_reader.train_status = None
 stdout_reader.join()
 
 if train_exit_code:
