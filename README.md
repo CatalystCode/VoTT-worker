@@ -9,7 +9,7 @@ git submodule init
 git submodule update
 ```
 
-Then, make sure the environment variables needed for dispatching with either Azure Storage Queues are present (`.env` recommended):
+Then, make sure the environment variables needed for dispatching with either Azure Storage Queues or Azure Service Bus are present (`.env` recommended):
 
 ```
 AZURE_STORAGE_ACCOUNT_NAME=accountnamefromazure
