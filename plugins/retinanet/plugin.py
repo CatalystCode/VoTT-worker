@@ -42,6 +42,8 @@ def transform_url(url):
 # 3 width
 # 4 height
 # 5 class
+if not os.path.isdir('snapshots'):
+    os.mkdir('snapshots')
 if not os.path.isdir('files'):
     os.mkdir('files')
 annotations = pandas.read_csv(args.annotations, header=None, encoding="utf-8")
