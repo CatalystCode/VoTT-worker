@@ -10,6 +10,7 @@ import tarfile
 import requests
 import threading
 import re
+import glob
 
 def parse_args(args):
     parser = argparse.ArgumentParser(description='RetinaNet VoTT-train plugin.')
@@ -37,10 +38,10 @@ def transform_url(url):
 
 # The pandas dataframes should have the following columns:
 # 0 url
-# 1 x
-# 2 y
-# 3 width
-# 4 height
+# 1 x1
+# 2 y1
+# 3 x2
+# 4 y2
 # 5 class
 if not os.path.isdir('snapshots'):
     os.mkdir('snapshots')
@@ -135,7 +136,9 @@ if train_exit_code:
 model_tgz = 'model.tgz'
 with tarfile.open(model_tgz, 'w:gz') as tar:
         # TODO: Only include the latest snapshot and name it something like model.h5
-        tar.add('snapshots', arcname='snapshots')
+        snapshots = glob.glob('snapshots/*.h5')
+        last_snapshot = sorted(snapshots)[-1]
+        tar.add(last_snapshot, arcname='model.h5')
         tar.add('classes.csv')
         tar.add('annotations.csv')
 
