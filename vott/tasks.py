@@ -26,7 +26,7 @@ class Task:
         return str(self.content)
     def train(self, sandbox):
         # TODO: Download/initialize configured plugin.
-        plugin_name = self.content['plugin_name'] if 'plugin_name' in self.content else default_plugin_name
+        plugin_name = self.content['plugin'] if 'plugin' in self.content else default_plugin_name
         plugin_url = self.content['plugin_url'] if 'plugin_url' in self.content else default_plugin_url
         if plugin_url:
             # TODO: Download/update plugin (git clone or git update)
