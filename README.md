@@ -9,7 +9,7 @@ git submodule init
 git submodule update
 ```
 
-Then, make sure the environment variables needed for dispatching with either Azure Storage Queues are present (`.env` recommended):
+Then, make sure the environment variables needed for dispatching with either Azure Storage Queues or Azure Service Bus are present (`.env` recommended):
 
 ```
 AZURE_STORAGE_ACCOUNT_NAME=accountnamefromazure
@@ -88,3 +88,9 @@ The `status` property is meant to be a reference to an https endpoint that can r
     classification_loss: 0.25, /* Classification loss for the current epoch */
 }
 ```
+
+# Manual queueing for testing
+
+If you need to test the response to incoming queue messages, you may create messages manually from the Azure dashboard like so:
+
+![Dashboard Screenshot](https://user-images.githubusercontent.com/1117904/35071643-0ce9d354-fba7-11e7-9939-a075ef71431b.png)
