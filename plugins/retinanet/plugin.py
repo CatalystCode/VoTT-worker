@@ -31,7 +31,7 @@ def transform_url(url):
     path = os.path.join('files', os.path.basename(url))
     if os.path.isfile(path):
         return path
-    print("Dowloading %s from %s" % (path, url))
+    print("Downloading %s from %s" % (path, url))
     urllib.request.urlretrieve(url, filename=path)
     return path
 
