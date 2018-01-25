@@ -8,7 +8,8 @@ RUN apt-get install -y --fix-missing \
     git \
     libopencv-dev python-opencv \
     vim
-
+    
+RUN pip3 install --upgrade pip
 RUN pip3 install 'keras>=2.1.3' 
 RUN pip3 install --user --upgrade git+https://github.com/broadinstitute/keras-resnet
 RUN pip3 'opencv-python==3.4.0.12' 
