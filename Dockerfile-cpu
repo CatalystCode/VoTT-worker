@@ -11,7 +11,9 @@ RUN apt-get install -y --fix-missing \
 
 RUN pip3 install 'keras>=2.1.3' 
 RUN pip3 install --user --upgrade git+https://github.com/broadinstitute/keras-resnet
-RUN pip3 opencv-python azure-storage azure-servicebus python-dotenv pandas pillow h5py
+RUN pip3 opencv-python 
+RUN pip3 azure-storage azure-servicebus python-dotenv pandas 
+RUN pip3 pillow h5py
 
 ADD ./ /vott-train
 WORKDIR /vott-train
