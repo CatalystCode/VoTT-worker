@@ -24,7 +24,7 @@ receive_sleep_in_seconds = int(os.environ.get('VOTT_RECEIVE_SLEEP_IN_SECONDS', '
 
 if __name__ == '__main__':
     if not (ServiceBusTaskSource.is_supported() or StorageQueueTaskSource.is_supported()):
-        print("No supported task sources configured. Please set enviroment variables required for either ServiceBusTaskSource or StorageQueueTaskSource")
+        print("No supported task sources configured. Please set environment variables required for either ServiceBusTaskSource or StorageQueueTaskSource.")
         exit(10)
     print("Accessing task queue...")
     source = ServiceBusTaskSource() if ServiceBusTaskSource.is_supported() else StorageQueueTaskSource()
